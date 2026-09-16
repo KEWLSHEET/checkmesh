@@ -1,0 +1,486 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Check Mesh — Blender Add-on</title>
+<style>
+  :root {
+    --bg: #0d0f14;
+    --bg2: #151923;
+    --card: #1a1f2b;
+    --line: #2a3142;
+    --text: #e8ecf3;
+    --muted: #9aa3b5;
+    --blue: #3b82f6;
+    --violet: #8b5cf6;
+    --pink: #ff3fa4;
+    --teal: #19e6c1;
+    --lime: #9be22d;
+    --radius: 18px;
+    --shadow: 0 20px 60px rgba(0, 0, 0, .45);
+  }
+  :root { color-scheme: dark; }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0; background: var(--bg); color: var(--text);
+    font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    line-height: 1.55; -webkit-font-smoothing: antialiased;
+  }
+  a { color: inherit; }
+  .wrap { max-width: 1120px; margin: 0 auto; padding: 0 24px; }
+  section { padding: 88px 0; }
+  h2 { font-size: clamp(28px, 4vw, 42px); line-height: 1.1; margin: 0 0 14px; letter-spacing: -.02em; }
+  .lead { color: var(--muted); font-size: 18px; max-width: 640px; margin: 0 0 40px; }
+  .eyebrow {
+    display: inline-block; font-size: 12px; font-weight: 800; letter-spacing: .18em; text-transform: uppercase;
+    padding: 6px 12px; border-radius: 999px; background: rgba(139, 92, 246, .14); color: var(--violet);
+    margin-bottom: 16px;
+  }
+
+  /* ---------- buttons ---------- */
+  .btn {
+    display: inline-flex; align-items: center; gap: 10px; cursor: pointer; text-decoration: none;
+    font-weight: 800; font-size: 17px; padding: 16px 28px; border-radius: 14px; border: 0;
+    color: #fff; background: linear-gradient(135deg, var(--pink), var(--violet));
+    box-shadow: 0 12px 30px rgba(255, 63, 164, .35);
+    transition: transform .2s ease, box-shadow .2s ease;
+  }
+  .btn:hover { transform: translateY(-2px); box-shadow: 0 18px 40px rgba(255, 63, 164, .45); }
+  .btn .price { background: rgba(255, 255, 255, .2); padding: 3px 10px; border-radius: 999px; font-size: 15px; }
+  .btn-ghost {
+    display: inline-flex; align-items: center; gap: 8px; text-decoration: none; font-weight: 700;
+    padding: 15px 22px; border-radius: 14px; border: 1px solid var(--line); color: var(--text);
+    background: transparent; transition: border-color .2s ease;
+  }
+  .btn-ghost:hover { border-color: var(--violet); }
+
+  /* ---------- hero ---------- */
+  .hero { position: relative; overflow: hidden; padding: 96px 0 72px; }
+  .hero::before {
+    content: ""; position: absolute; inset: -40% -20% auto -20%; height: 120%;
+    background:
+      radial-gradient(40% 50% at 20% 30%, rgba(59, 130, 246, .35), transparent 70%),
+      radial-gradient(35% 45% at 80% 20%, rgba(139, 92, 246, .38), transparent 70%),
+      radial-gradient(30% 40% at 60% 70%, rgba(255, 63, 164, .22), transparent 70%);
+    filter: blur(20px); animation: drift 18s ease-in-out infinite alternate; z-index: 0;
+  }
+  @keyframes drift { from { transform: translate3d(-3%, 0, 0) rotate(0deg); } to { transform: translate3d(3%, 4%, 0) rotate(8deg); } }
+  .hero .wrap { position: relative; z-index: 1; }
+  .hero-grid { display: grid; grid-template-columns: 1.05fr 1fr; gap: 48px; align-items: center; }
+  .badge-new {
+    display: inline-flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 700;
+    padding: 6px 12px 6px 6px; border-radius: 999px; border: 1px solid var(--line); background: var(--bg2);
+    margin-bottom: 22px;
+  }
+  .badge-new b { background: var(--teal); color: #041a15; padding: 3px 8px; border-radius: 999px; font-size: 11px; letter-spacing: .08em; }
+  .hero h1 {
+    font-size: clamp(44px, 7vw, 84px); line-height: .95; margin: 0 0 20px; letter-spacing: -.035em; font-weight: 900;
+    background: linear-gradient(120deg, var(--text) 30%, var(--violet) 65%, var(--pink));
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+  }
+  .hero p.sub { font-size: 20px; color: var(--muted); margin: 0 0 32px; max-width: 520px; }
+  .cta-row { display: flex; flex-wrap: wrap; gap: 14px; align-items: center; }
+  .rating { margin-top: 22px; color: var(--muted); font-size: 14px; display: flex; gap: 8px; align-items: center; }
+  .rating .stars { color: #fbbf24; letter-spacing: 2px; }
+  .shot {
+    border-radius: var(--radius); overflow: hidden; border: 1px solid var(--line); box-shadow: var(--shadow);
+    transform: perspective(1400px) rotateY(-9deg) rotateX(3deg); transition: transform .6s ease;
+    background: var(--bg2);
+  }
+  .shot:hover { transform: perspective(1400px) rotateY(0) rotateX(0); }
+  .shot img { display: block; width: 100%; height: auto; }
+  .yt { position: relative; display: block; width: 100%; aspect-ratio: 16 / 9; padding: 0; border: 0; cursor: pointer; background: #000; }
+  .yt img { width: 100%; height: 100%; object-fit: cover; transition: filter .3s ease; }
+  .yt:hover img { filter: brightness(.8); }
+  .yt-play { position: absolute; inset: 0; display: grid; place-items: center; transition: transform .2s ease; }
+  .yt:hover .yt-play { transform: scale(1.1); }
+  .yt iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
+
+  /* ---------- stats ---------- */
+  .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-top: 64px; }
+  .stat { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); padding: 22px; text-align: center; }
+  .stat .num { font-size: 40px; font-weight: 900; letter-spacing: -.03em; line-height: 1;
+    background: linear-gradient(135deg, var(--blue), var(--violet)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+  .stat .lbl { color: var(--muted); font-size: 14px; margin-top: 8px; }
+
+  /* ---------- checkers grid ---------- */
+  .checkers { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+  .chk {
+    position: relative; background: var(--card); border: 1px solid var(--line); border-radius: var(--radius);
+    padding: 22px; overflow: hidden; transition: transform .25s ease, border-color .25s ease;
+  }
+  .chk:hover { transform: translateY(-4px); border-color: var(--c); }
+  .chk::after { content: ""; position: absolute; inset: auto -30% -60% auto; width: 160px; height: 160px; border-radius: 50%;
+    background: var(--c); opacity: .12; filter: blur(30px); }
+  .chk svg { width: 46px; height: 46px; margin-bottom: 14px; }
+  .chk h3 { margin: 0 0 6px; font-size: 17px; }
+  .chk p { margin: 0; color: var(--muted); font-size: 14px; }
+
+  /* ---------- speed ---------- */
+  .speed { background: var(--bg2); border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+  .bars { display: grid; gap: 22px; max-width: 760px; }
+  .bar-row .bar-head { display: flex; justify-content: space-between; font-weight: 700; margin-bottom: 8px; }
+  .bar-row .bar-head span:last-child { color: var(--muted); font-weight: 600; }
+  .track { height: 18px; border-radius: 999px; background: var(--line); overflow: hidden; }
+  .fill { height: 100%; width: var(--w); border-radius: 999px; transition: width 1.6s cubic-bezier(.2, .8, .2, 1); }
+  .fill.old { background: #6b7280; }
+  .fill.new { background: linear-gradient(90deg, var(--teal), var(--blue)); }
+  .speed-note { color: var(--muted); font-size: 13px; margin-top: 18px; }
+  .platforms { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 34px; }
+  .chip { border: 1px solid var(--line); border-radius: 999px; padding: 8px 14px; font-weight: 700; font-size: 14px; background: var(--card); }
+
+  /* ---------- features ---------- */
+  .features { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+  .feat { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); padding: 26px; }
+  .feat .ico { font-size: 26px; margin-bottom: 10px; }
+  .feat h3 { margin: 0 0 8px; font-size: 18px; }
+  .feat p { margin: 0; color: var(--muted); font-size: 15px; }
+
+  /* ---------- steps ---------- */
+  .steps { counter-reset: s; display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+  .step { counter-increment: s; background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); padding: 24px; }
+  .step::before { content: counter(s); display: grid; place-items: center; width: 34px; height: 34px; border-radius: 10px;
+    background: linear-gradient(135deg, var(--blue), var(--violet)); color: #fff; font-weight: 900; margin-bottom: 14px; }
+  .step p { margin: 0; color: var(--muted); font-size: 15px; }
+  .step b { color: var(--text); }
+
+  /* ---------- changelog / faq ---------- */
+  details { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 18px 22px; margin-bottom: 12px; }
+  summary { cursor: pointer; font-weight: 800; list-style: none; display: flex; justify-content: space-between; align-items: center; }
+  summary::-webkit-details-marker { display: none; }
+  summary::after { content: "+"; font-size: 22px; color: var(--violet); transition: transform .2s ease; }
+  details[open] summary::after { transform: rotate(45deg); }
+  details ul { color: var(--muted); margin: 14px 0 0; padding-left: 20px; }
+  details p { color: var(--muted); margin: 12px 0 0; }
+  .tag { font-size: 11px; font-weight: 800; letter-spacing: .08em; padding: 3px 8px; border-radius: 999px; margin-left: 10px;
+    background: rgba(25, 230, 193, .15); color: var(--teal); vertical-align: middle; }
+
+  /* ---------- final cta ---------- */
+  .final { text-align: center; }
+  .final-card {
+    border-radius: 28px; padding: 64px 28px; position: relative; overflow: hidden; border: 1px solid var(--line);
+    background: linear-gradient(135deg, rgba(59, 130, 246, .18), rgba(139, 92, 246, .22) 50%, rgba(255, 63, 164, .18));
+  }
+  .final h2 { font-size: clamp(32px, 5vw, 52px); }
+  .final .lead { margin: 0 auto 32px; }
+  footer { padding: 36px 0 60px; color: var(--muted); font-size: 14px; text-align: center; }
+  footer a { color: var(--violet); }
+
+  /* ---------- reveal ---------- */
+  /* hidden only once the script has run: without JS everything stays visible */
+  .js .reveal { opacity: 0; transform: translateY(24px); transition: opacity .8s ease, transform .8s ease; }
+  .js .reveal.in { opacity: 1; transform: none; }
+  .no-anim .fill { transition: none; }
+  @media (prefers-reduced-motion: reduce) {
+    .js .reveal { opacity: 1; transform: none; transition: none; }
+    .hero::before { animation: none; }
+    .fill { transition: none; }
+  }
+
+  /* ---------- responsive ---------- */
+  @media (max-width: 960px) {
+    .hero-grid { grid-template-columns: 1fr; }
+    .shot { transform: none; }
+    .checkers { grid-template-columns: repeat(2, 1fr); }
+    .features { grid-template-columns: 1fr 1fr; }
+    .steps, .stats { grid-template-columns: 1fr 1fr; }
+  }
+  @media (max-width: 560px) {
+    section { padding: 64px 0; }
+    .checkers, .features, .steps { grid-template-columns: 1fr; }
+    .stat .num { font-size: 32px; }
+    .btn { width: 100%; justify-content: center; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ================= HERO ================= -->
+<header class="hero">
+  <div class="wrap">
+    <div class="hero-grid">
+      <div>
+        <div class="badge-new"><b>NEW</b> Version 3.0 — native core, ~11× faster editing</div>
+        <h1 data-gumroad-field="name">Check Mesh</h1>
+        <p class="sub">The real-time topology checker that lives inside Blender's Overlays menu. Keep it on while you model and catch every flaw before it reaches your sculpt, your game engine or your printer.</p>
+        <div class="cta-row">
+          <a class="btn" href="https://kewlsheet.gumroad.com/l/checkmesh" data-gumroad-action="buy">Get Check Mesh <span class="price" data-gumroad-field="price">€7,77+</span></a>
+          <a class="btn-ghost" href="#checkers">See what it detects ↓</a>
+        </div>
+        <div class="rating"><span class="stars">★</span><span data-gumroad-field="rating">New release</span><span>·</span><span data-gumroad-field="review-count">Be the first to review</span></div>
+      </div>
+      <div class="shot reveal">
+        <button class="yt" type="button" data-yt="sV9A8QKR5cI" aria-label="Play the Check Mesh video">
+          <img src="https://i.ytimg.com/vi/sV9A8QKR5cI/maxresdefault.jpg" alt="Check Mesh video" width="1280" height="720">
+          <span class="yt-play"><svg viewBox="0 0 68 48" width="76" height="54"><path d="M66.5 7.7a8.6 8.6 0 0 0-6-6C55.2.3 34 .3 34 .3s-21.2 0-26.5 1.4a8.6 8.6 0 0 0-6 6C.1 13 .1 24 .1 24s0 11 1.4 16.3a8.6 8.6 0 0 0 6 6C12.8 47.7 34 47.7 34 47.7s21.2 0 26.5-1.4a8.6 8.6 0 0 0 6-6C67.9 35 67.9 24 67.9 24s0-11-1.4-16.3z" fill="#ff0033"/><path d="M27 34V14l18 10z" fill="#fff"/></svg></span>
+        </button>
+      </div>
+    </div>
+
+    <div class="stats">
+      <div class="stat reveal"><div class="num" data-count="11" data-suffix="×">11×</div><div class="lbl">faster while editing</div></div>
+      <div class="stat reveal"><div class="num" data-count="12">12</div><div class="lbl">checkers, live</div></div>
+      <div class="stat reveal"><div class="num" data-count="4">4</div><div class="lbl">platforms supported</div></div>
+      <div class="stat reveal"><div class="num">4.2+</div><div class="lbl">Blender version</div></div>
+    </div>
+  </div>
+</header>
+
+<!-- ================= CHECKERS ================= -->
+<section id="checkers">
+  <div class="wrap">
+    <span class="eyebrow">What it detects</span>
+    <h2>Every topology flaw, highlighted live</h2>
+    <p class="lead">Each issue gets its own color right in the viewport, in Object, Edit and Sculpt mode. Pick the checks you need and keep modeling.</p>
+
+    <div class="checkers">
+      <div class="chk reveal" style="--c:#b56cff">
+        <svg viewBox="0 0 48 48" fill="none" stroke="#b56cff" stroke-width="2.5" stroke-linejoin="round"><polygon points="24,5 42,15 40,36 24,44 8,36 6,15" fill="#b56cff22"/></svg>
+        <h3>N-gons</h3><p>Faces with more than four sides.</p>
+      </div>
+      <div class="chk reveal" style="--c:#f3a6d7">
+        <svg viewBox="0 0 48 48" fill="none" stroke="#f3a6d7" stroke-width="2.5" stroke-linejoin="round"><polygon points="24,6 43,40 5,40" fill="#f3a6d722"/><polygon points="6,44 44,40 8,36" stroke="#3b82f6" fill="#3b82f622"/></svg>
+        <h3>Triangles</h3><p>Plus elongated triangles in their own color.</p>
+      </div>
+      <div class="chk reveal" style="--c:#ff3fa4">
+        <svg viewBox="0 0 48 48" fill="none" stroke="#ff3fa4" stroke-width="2.5" stroke-linejoin="round"><polygon points="6,30 24,22 42,30 24,38" fill="#ff3fa422"/><path d="M24 22 L24 6 L38 12 L38 28"/><path d="M24 22 L10 12 L10 28"/></svg>
+        <h3>Non-manifold</h3><p>Edges, faces &amp; open boundaries.</p>
+      </div>
+      <div class="chk reveal" style="--c:#ff4d9d">
+        <svg viewBox="0 0 48 48" fill="none" stroke="#ff4d9d" stroke-width="2.5" stroke-linejoin="round"><polygon points="4,30 30,22 44,30 18,38" fill="#ff4d9d22"/><polygon points="20,8 28,8 28,42 20,42" fill="#8b5cf633" stroke="#8b5cf6"/></svg>
+        <h3>Intersecting faces</h3><p>Geometry passing through itself.</p>
+      </div>
+      <div class="chk reveal" style="--c:#ec7d6f">
+        <svg viewBox="0 0 48 48" fill="none" stroke="#ec7d6f" stroke-width="2.5" stroke-linejoin="round"><rect x="8" y="10" width="26" height="26" rx="2" fill="#ec7d6f22"/><rect x="14" y="14" width="26" height="26" rx="2" fill="#ec7d6f22"/></svg>
+        <h3>Overlapping</h3><p>Duplicate vertices, edges &amp; faces.</p>
+      </div>
+      <div class="chk reveal" style="--c:#ff1f5a">
+        <svg viewBox="0 0 48 48" fill="none" stroke="#ff1f5a" stroke-width="2.5" stroke-linejoin="round"><polygon points="6,32 22,40 42,30 26,10" fill="#ff1f5a22"/><path d="M22 40 L26 10" stroke-dasharray="3 3"/></svg>
+        <h3>Non-flat faces</h3><p>Warped quads and n-gons.</p>
+      </div>
+      <div class="chk reveal" style="--c:#6aa6ff">
+        <svg viewBox="0 0 48 48" fill="none" stroke="#6aa6ff" stroke-width="2.5" stroke-linecap="round"><circle cx="24" cy="24" r="4" fill="#6aa6ff"/><path d="M24 24 L24 4 M24 24 L43 18 M24 24 L36 42 M24 24 L12 42 M24 24 L5 18 M24 24 L40 6"/></svg>
+        <h3>Complex poles</h3><p>E-poles, N-poles and 6+ valence.</p>
+      </div>
+      <div class="chk reveal" style="--c:#ff9bea">
+        <svg viewBox="0 0 48 48" fill="none" stroke="#ff9bea" stroke-width="2.5" stroke-linejoin="round"><polygon points="24,24 6,10 6,38" fill="#ff9bea22"/><polygon points="24,24 42,10 42,38" fill="#ff9bea22"/><circle cx="24" cy="24" r="3.5" fill="#ff9bea"/></svg>
+        <h3>Bowties</h3><p>Vertices joining disconnected fans.</p>
+      </div>
+      <div class="chk reveal" style="--c:#9be22d">
+        <svg viewBox="0 0 48 48" fill="none" stroke="#9be22d" stroke-width="2.5"><circle cx="14" cy="16" r="4" fill="#9be22d"/><circle cx="34" cy="30" r="4" fill="#9be22d"/><circle cx="18" cy="36" r="4" fill="#9be22d"/></svg>
+        <h3>Isolated vertices</h3><p>Loose points left behind.</p>
+      </div>
+      <div class="chk reveal" style="--c:#19e6a0">
+        <svg viewBox="0 0 48 48" fill="none" stroke-width="2.5" stroke-linejoin="round"><rect x="6" y="8" width="16" height="32" rx="2" stroke="#9aa3b5" fill="#9aa3b522"/><rect x="26" y="8" width="16" height="32" rx="2" stroke="#9aa3b5" fill="#9aa3b522"/><path d="M24 4 L24 44" stroke="#19e6a0" stroke-width="3.5"/></svg>
+        <h3>UV seams</h3><p>Where your UV islands split.</p>
+      </div>
+      <div class="chk reveal" style="--c:#00e5ff">
+        <svg viewBox="0 0 48 48" fill="none" stroke-width="2.5" stroke-linejoin="round"><path d="M4 34 L24 14 L44 34" stroke="#9aa3b5"/><path d="M24 14 L24 40" stroke="#9aa3b5" stroke-dasharray="3 3"/><path d="M4 34 L24 14 L44 34" stroke="#00e5ff" stroke-width="3.5" stroke-dasharray="0 28 60"/><circle cx="24" cy="14" r="3" fill="#00e5ff"/></svg>
+        <h3>Sharp edges</h3><p>Edges marked sharp, at a glance.</p>
+      </div>
+      <div class="chk reveal" style="--c:#fbbf24">
+        <svg viewBox="0 0 48 48" fill="none" stroke="#fbbf24" stroke-width="2.5" stroke-linejoin="round"><rect x="8" y="14" width="14" height="20" rx="2" fill="#fbbf2422"/><rect x="26" y="8" width="16" height="32" rx="2" fill="#fbbf2422"/><path d="M13 42 L37 42" stroke-dasharray="3 3"/></svg>
+        <h3>Unapplied scale</h3><p>Alert + safe apply that keeps children &amp; modifiers.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= SPEED ================= -->
+<section class="speed">
+  <div class="wrap">
+    <span class="eyebrow">New in 3.0</span>
+    <h2>A native core, built for dense meshes</h2>
+    <p class="lead">Mesh analysis now runs in a compiled, multithreaded engine. Same results as before, checked face by face against the previous version — just much faster.</p>
+
+    <div class="bars" id="bars">
+      <div class="bar-row">
+        <div class="bar-head"><span>Editing a 125k-face mesh, all checkers on</span><span>30-tick drag</span></div>
+        <div class="track"><div class="fill old" data-w="100" style="--w:100%"></div></div>
+        <div class="bar-head" style="margin-top:6px"><span style="font-weight:600;color:var(--muted)">2.0 — 41.9 s</span><span></span></div>
+        <div class="track"><div class="fill new" data-w="8.8" style="--w:8.8%"></div></div>
+        <div class="bar-head" style="margin-top:6px"><span style="font-weight:600">3.0 — 3.7 s</span><span style="color:var(--teal)">~11× faster</span></div>
+      </div>
+      <div class="bar-row">
+        <div class="bar-head"><span>Non-flat detection, 500k faces</span><span></span></div>
+        <div class="track"><div class="fill old" data-w="100" style="--w:100%"></div></div>
+        <div class="bar-head" style="margin-top:6px"><span style="font-weight:600;color:var(--muted)">2.0 — 1,460 ms</span><span></span></div>
+        <div class="track"><div class="fill new" data-w="1.2" style="--w:1.2%"></div></div>
+        <div class="bar-head" style="margin-top:6px"><span style="font-weight:600">3.0 — 5 ms</span><span style="color:var(--teal)">~290× faster</span></div>
+      </div>
+    </div>
+    <p class="speed-note">Measured in Blender 5.2 on Windows. Results depend on your mesh and hardware.</p>
+
+    <div class="platforms">
+      <span class="chip">🪟 Windows x64</span>
+      <span class="chip">🐧 Linux x64</span>
+      <span class="chip">🍎 macOS Apple Silicon</span>
+      <span class="chip">🍎 macOS Intel</span>
+      <span class="chip">📦 One package, nothing else to install</span>
+    </div>
+  </div>
+</section>
+
+<!-- ================= FEATURES ================= -->
+<section>
+  <div class="wrap">
+    <span class="eyebrow">Built for your workflow</span>
+    <h2>Fix it, don't just find it</h2>
+    <p class="lead">Check Mesh feels native and stays out of your way until you need it.</p>
+    <div class="features">
+      <div class="feat reveal"><div class="ico">🛠</div><h3>Select &amp; fix in one click</h3><p>Every checker comes with select and fix actions in the diagnostic panel. <b>Fix All</b> repairs every fixable issue on all selected meshes.</p></div>
+      <div class="feat reveal"><div class="ico">📐</div><h3>Safe Apply Scale</h3><p>Apply scale without breaking children or modifiers. Non-uniform scale is flagged the moment you select the object.</p></div>
+      <div class="feat reveal"><div class="ico">🟢</div><h3>Instant visual feedback</h3><p>A short green flash confirms a clean mesh on selection; a red flash warns about non-uniform scale.</p></div>
+      <div class="feat reveal"><div class="ico">🎨</div><h3>Customizable colors</h3><p>Pick high-contrast colors that pop against your theme or MatCaps, and tune point size, edge width and offsets.</p></div>
+      <div class="feat reveal"><div class="ico">🧩</div><h3>Native integration</h3><p>Lives in the Overlays menu or any N-panel tab. Add it to Quick Favorites or toggle it with a shortcut.</p></div>
+      <div class="feat reveal"><div class="ico">🚀</div><h3>Production ready</h3><p>Essential for subdivision modeling, game engines (UE5, Unity), retopology and 3D printing. Works in Object, Edit and Sculpt mode.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= QUICK START ================= -->
+<section style="padding-top:0">
+  <div class="wrap">
+    <span class="eyebrow">Quick start</span>
+    <h2>Up and running in a minute</h2>
+    <div class="steps" style="margin-top:32px">
+      <div class="step reveal"><p><b>Install</b> — drag &amp; drop the .zip into Blender, or use Preferences → Add-ons.</p></div>
+      <div class="step reveal"><p><b>Open</b> the Overlays dropdown in the 3D Viewport.</p></div>
+      <div class="step reveal"><p><b>Enable</b> the Check Mesh section and the checks you need.</p></div>
+      <div class="step reveal"><p><b>Model freely</b> — flaws are highlighted live in your colors.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= CHANGELOG & FAQ ================= -->
+<section style="padding-top:0">
+  <div class="wrap" style="max-width:820px">
+    <span class="eyebrow">Changelog &amp; FAQ</span>
+    <h2>Good to know</h2>
+    <div style="margin-top:28px">
+      <details open>
+        <summary><span>v3.0.0 <span class="tag">LATEST</span></span></summary>
+        <ul>
+          <li><b>New native core</b>: compiled, multithreaded analysis for every checker, in Object and Edit Mode, with the same results as before.</li>
+          <li><b>~11× faster while editing</b> dense meshes; individual checkers up to hundreds of times faster.</li>
+          <li><b>Overlay redraws ~15× faster</b> during edits.</li>
+          <li><b>Windows, Linux, macOS Apple Silicon &amp; Intel</b> in one package.</li>
+          <li>Native core status shown in the add-on preferences, with automatic fallback to the Python engine.</li>
+          <li>Fixed: false overlapping edges/faces in Object Mode; slow Edit Mode overlay redraws.</li>
+        </ul>
+      </details>
+      <details>
+        <summary>v2.0.7</summary>
+        <ul>
+          <li>Seven new checkers: non-flat faces, UV seams, sharp edges, intersecting, bowtie, boundaries &amp; overlapping.</li>
+          <li>Elongated triangles, bowtie and non-manifold faces overlays, with select &amp; fix operators.</li>
+          <li>Retopology overlay support; live checkers in Sculpt mode.</li>
+          <li>Fix All, Safe Apply Scale, Quick Favorites &amp; shortcut support.</li>
+          <li>Alerts for missing UV map and non-uniform scale; green / red selection flash.</li>
+        </ul>
+      </details>
+      <details>
+        <summary>Which Blender versions are supported?</summary>
+        <p>Blender 4.2 and newer, on Windows, Linux and macOS (Apple Silicon and Intel).</p>
+      </details>
+      <details>
+        <summary>Will it slow down my viewport?</summary>
+        <p>Version 3.0 runs its analysis in a native, multithreaded core, built to keep up with dense meshes while you edit. You can also set a face-count limit above which overlays are skipped.</p>
+      </details>
+      <details>
+        <summary>Do I get updates?</summary>
+        <p>Yes — updates are delivered through your Gumroad library. Download the new package and install it over the old one.</p>
+      </details>
+      <details>
+        <summary>Need help or found a bug?</summary>
+        <p>Join the community and get support directly from the creator on <a href="https://discord.gg/jfDPKf5ju2" target="_blank" rel="noopener">Discord</a>.</p>
+      </details>
+    </div>
+  </div>
+</section>
+
+<!-- ================= FINAL CTA ================= -->
+<section class="final" style="padding-top:0">
+  <div class="wrap">
+    <div class="final-card reveal">
+      <h2>Model with confidence</h2>
+      <p class="lead">Catch every flaw before it costs you a re-export. Name your price.</p>
+      <a class="btn" href="https://kewlsheet.gumroad.com/l/checkmesh" data-gumroad-action="buy">Get Check Mesh <span class="price" data-gumroad-field="price">€7,77+</span></a>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">Made by KewlSheet · <a href="https://discord.gg/jfDPKf5ju2" target="_blank" rel="noopener">Discord</a></div>
+</footer>
+
+<script>
+  (function () {
+    document.documentElement.classList.add("js");
+    var yts = document.querySelectorAll(".yt");
+    for (var y = 0; y < yts.length; y++) {
+      yts[y].addEventListener("click", function () {
+        var id = this.getAttribute("data-yt");
+        var f = document.createElement("iframe");
+        f.src = "https://www.youtube-nocookie.com/embed/" + id + "?autoplay=1&rel=0";
+        f.title = "Check Mesh video";
+        f.allow = "autoplay; encrypted-media; picture-in-picture; fullscreen";
+        f.allowFullscreen = true;
+        this.innerHTML = "";
+        this.appendChild(f);
+      });
+    }
+    var fillsInit = document.querySelectorAll(".fill");
+    for (var z = 0; z < fillsInit.length; z++) fillsInit[z].style.width = "0";
+    var reduce = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+    function countUp(el) {
+      var target = parseFloat(el.getAttribute("data-count"));
+      var suffix = el.getAttribute("data-suffix") || "";
+      if (isNaN(target) || reduce) return;
+      var start = null, dur = 1200;
+      function step(t) {
+        if (!start) start = t;
+        var p = Math.min(1, (t - start) / dur);
+        var eased = 1 - Math.pow(1 - p, 3);
+        el.textContent = Math.round(target * eased) + suffix;
+        if (p < 1) requestAnimationFrame(step);
+      }
+      requestAnimationFrame(step);
+    }
+
+    function fillBars() {
+      var fills = document.querySelectorAll(".fill");
+      for (var i = 0; i < fills.length; i++) {
+        fills[i].style.width = fills[i].getAttribute("data-w") + "%";
+      }
+    }
+
+    if (!("IntersectionObserver" in window)) {
+      var all = document.querySelectorAll(".reveal");
+      for (var i = 0; i < all.length; i++) all[i].classList.add("in");
+      fillBars();
+      return;
+    }
+
+    var io = new IntersectionObserver(function (entries) {
+      entries.forEach(function (e) {
+        if (!e.isIntersecting) return;
+        e.target.classList.add("in");
+        var nums = e.target.querySelectorAll ? e.target.querySelectorAll("[data-count]") : [];
+        for (var j = 0; j < nums.length; j++) countUp(nums[j]);
+        if (e.target.id === "bars") fillBars();
+        io.unobserve(e.target);
+      });
+    }, { threshold: 0.15 });
+
+    var els = document.querySelectorAll(".reveal, #bars");
+    for (var k = 0; k < els.length; k++) io.observe(els[k]);
+  })();
+</script>
+<!-- Off Gumroad (e.g. GitHub Pages): opens the Gumroad checkout overlay on the product links -->
+<script src="https://gumroad.com/js/gumroad.js"></script>
+</body>
+</html>
