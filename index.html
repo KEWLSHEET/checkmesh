@@ -123,7 +123,7 @@
   .bars { display: grid; gap: 22px; max-width: 760px; }
   .bar-row .bar-head { display: flex; justify-content: space-between; font-weight: 700; margin-bottom: 8px; }
   .bar-row .bar-head span:last-child { color: var(--muted); font-weight: 600; }
-  .track { height: 18px; border-radius: 999px; background: var(--line); overflow: hidden; }
+  .track { height: 14px; border-radius: 999px; background: var(--line); overflow: hidden; }
   .fill { height: 100%; width: var(--w); border-radius: 999px; transition: width 1.6s cubic-bezier(.2, .8, .2, 1); }
   .fill.old { background: #6b7280; }
   .fill.new { background: linear-gradient(90deg, var(--teal), var(--blue)); }
@@ -296,15 +296,78 @@
     <p class="lead">Mesh analysis now runs in a compiled, multithreaded engine. Same results as before, checked face by face against the previous version — just much faster.</p>
 
     <div class="bars" id="bars">
-      <div class="bar-row">
-        <div class="bar-head"><span>Non-flat detection, 500k faces</span><span></span></div>
+      <div class="bar-row reveal">
+        <div class="bar-head"><span>Overlapping verts, edges & faces</span><span style="color:var(--teal)">~65× faster</span></div>
         <div class="track"><div class="fill old" data-w="100" style="--w:100%"></div></div>
-        <div class="bar-head" style="margin-top:6px"><span style="font-weight:600;color:var(--muted)">2.0 — 1,460 ms</span><span></span></div>
-        <div class="track"><div class="fill new" data-w="1.2" style="--w:1.2%"></div></div>
-        <div class="bar-head" style="margin-top:6px"><span style="font-weight:600">3.0 — 5 ms</span><span style="color:var(--teal)">~290× faster</span></div>
+        <div class="bar-head" style="margin-top:6px"><span style="font-weight:600;color:var(--muted)">2.0 — 3,880 ms</span><span></span></div>
+        <div class="track"><div class="fill new" data-w="1.5" style="--w:1.5%"></div></div>
+        <div class="bar-head" style="margin-top:6px"><span style="font-weight:600">3.0 — 60 ms</span><span></span></div>
+      </div>
+      <div class="bar-row reveal">
+        <div class="bar-head"><span>UV seams</span><span style="color:var(--teal)">~37× faster</span></div>
+        <div class="track"><div class="fill old" data-w="100" style="--w:100%"></div></div>
+        <div class="bar-head" style="margin-top:6px"><span style="font-weight:600;color:var(--muted)">2.0 — 2,360 ms</span><span></span></div>
+        <div class="track"><div class="fill new" data-w="2.7" style="--w:2.7%"></div></div>
+        <div class="bar-head" style="margin-top:6px"><span style="font-weight:600">3.0 — 63 ms</span><span></span></div>
+      </div>
+      <div class="bar-row reveal">
+        <div class="bar-head"><span>Non-flat faces</span><span style="color:var(--teal)">~40× faster</span></div>
+        <div class="track"><div class="fill old" data-w="100" style="--w:100%"></div></div>
+        <div class="bar-head" style="margin-top:6px"><span style="font-weight:600;color:var(--muted)">2.0 — 800 ms</span><span></span></div>
+        <div class="track"><div class="fill new" data-w="2.5" style="--w:2.5%"></div></div>
+        <div class="bar-head" style="margin-top:6px"><span style="font-weight:600">3.0 — 20 ms</span><span></span></div>
+      </div>
+      <div class="bar-row reveal">
+        <div class="bar-head"><span>Intersecting faces</span><span style="color:var(--teal)">~4× faster</span></div>
+        <div class="track"><div class="fill old" data-w="100" style="--w:100%"></div></div>
+        <div class="bar-head" style="margin-top:6px"><span style="font-weight:600;color:var(--muted)">2.0 — 531 ms</span><span></span></div>
+        <div class="track"><div class="fill new" data-w="22.8" style="--w:22.8%"></div></div>
+        <div class="bar-head" style="margin-top:6px"><span style="font-weight:600">3.0 — 121 ms</span><span></span></div>
+      </div>
+      <div class="bar-row reveal">
+        <div class="bar-head"><span>Complex poles & bowties</span><span style="color:var(--teal)">~7× faster</span></div>
+        <div class="track"><div class="fill old" data-w="100" style="--w:100%"></div></div>
+        <div class="bar-head" style="margin-top:6px"><span style="font-weight:600;color:var(--muted)">2.0 — 201 ms</span><span></span></div>
+        <div class="track"><div class="fill new" data-w="13.4" style="--w:13.4%"></div></div>
+        <div class="bar-head" style="margin-top:6px"><span style="font-weight:600">3.0 — 27 ms</span><span></span></div>
+      </div>
+      <div class="bar-row reveal">
+        <div class="bar-head"><span>Elongated triangles</span><span style="color:var(--teal)">~33× faster</span></div>
+        <div class="track"><div class="fill old" data-w="100" style="--w:100%"></div></div>
+        <div class="bar-head" style="margin-top:6px"><span style="font-weight:600;color:var(--muted)">2.0 — 98 ms</span><span></span></div>
+        <div class="track"><div class="fill new" data-w="3.1" style="--w:3.1%"></div></div>
+        <div class="bar-head" style="margin-top:6px"><span style="font-weight:600">3.0 — 3 ms</span><span></span></div>
+      </div>
+      <div class="bar-row reveal">
+        <div class="bar-head"><span>N-gons</span><span style="color:var(--teal)">~21× faster</span></div>
+        <div class="track"><div class="fill old" data-w="100" style="--w:100%"></div></div>
+        <div class="bar-head" style="margin-top:6px"><span style="font-weight:600;color:var(--muted)">2.0 — 71 ms</span><span></span></div>
+        <div class="track"><div class="fill new" data-w="4.8" style="--w:4.8%"></div></div>
+        <div class="bar-head" style="margin-top:6px"><span style="font-weight:600">3.0 — 3.4 ms</span><span></span></div>
+      </div>
+      <div class="bar-row reveal">
+        <div class="bar-head"><span>Non-manifold</span><span style="color:var(--teal)">~8× faster</span></div>
+        <div class="track"><div class="fill old" data-w="100" style="--w:100%"></div></div>
+        <div class="bar-head" style="margin-top:6px"><span style="font-weight:600;color:var(--muted)">2.0 — 63 ms</span><span></span></div>
+        <div class="track"><div class="fill new" data-w="11.9" style="--w:11.9%"></div></div>
+        <div class="bar-head" style="margin-top:6px"><span style="font-weight:600">3.0 — 7.5 ms</span><span></span></div>
+      </div>
+      <div class="bar-row reveal">
+        <div class="bar-head"><span>Triangles</span><span style="color:var(--teal)">~12× faster</span></div>
+        <div class="track"><div class="fill old" data-w="100" style="--w:100%"></div></div>
+        <div class="bar-head" style="margin-top:6px"><span style="font-weight:600;color:var(--muted)">2.0 — 58 ms</span><span></span></div>
+        <div class="track"><div class="fill new" data-w="8.3" style="--w:8.3%"></div></div>
+        <div class="bar-head" style="margin-top:6px"><span style="font-weight:600">3.0 — 4.8 ms</span><span></span></div>
+      </div>
+      <div class="bar-row reveal">
+        <div class="bar-head"><span>Sharp edges</span><span style="color:var(--teal)">~22× faster</span></div>
+        <div class="track"><div class="fill old" data-w="100" style="--w:100%"></div></div>
+        <div class="bar-head" style="margin-top:6px"><span style="font-weight:600;color:var(--muted)">2.0 — 44 ms</span><span></span></div>
+        <div class="track"><div class="fill new" data-w="4.5" style="--w:4.5%"></div></div>
+        <div class="bar-head" style="margin-top:6px"><span style="font-weight:600">3.0 — 2 ms</span><span></span></div>
       </div>
     </div>
-    <p class="speed-note">Measured in Blender 5.2 on Windows. Results depend on your mesh and hardware.</p>
+    <p class="speed-note">Every checker, measured on the same clean 500,000-face mesh in Blender 5.2 on Windows — 2.0.7 against 3.0, same code path, same results. Your mesh and hardware will differ.</p>
 
     <div class="platforms">
       <span class="chip">🪟 Windows x64</span>
